@@ -14,6 +14,7 @@ import com.google.common.io.Files;
 public class Timesheet {
 
     public static final int ONE_HOUR = 60;
+    public static final int TARGET_PER_DAY = ONE_HOUR * 8;
 
     public static void main(String[] args) throws IOException {
 
@@ -29,7 +30,7 @@ public class Timesheet {
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, (month -1));
         calendar.set(Calendar.DAY_OF_MONTH, day);
-        calendar.set(Calendar.HOUR, hour);
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
         calendar.set(Calendar.MINUTE, minutes);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -71,12 +72,13 @@ public class Timesheet {
 
         int totalMinutesFromInterval = calculateTotalMinutesFromInterval(start, end);
         int total = totalMinutesFromInterval - ONE_HOUR; // lunch time
+        int extraTime = total - TARGET_PER_DAY;
 
-        return formatReport(start, end, total); 
+        return formatReport(start, end, extraTime); 
     }
 
     private static String formatReport(GregorianCalendar start, GregorianCalendar end, int totalMinutesFromInterval) {
-        return new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(start.getTime()) + " " + new SimpleDateFormat("hh:mm:ss").format(end.getTime()) + " " + totalMinutesFromInterval;
+        return new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(start.getTime()) + " " + new SimpleDateFormat("HH:mm:ss").format(end.getTime()) + " " + totalMinutesFromInterval;
     }
 
     public static int calculateTotalMinutesFromInterval(GregorianCalendar start, GregorianCalendar end) {
