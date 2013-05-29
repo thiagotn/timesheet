@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -45,51 +46,43 @@ public class Timesheet {
         int day = Integer.parseInt(report.substring(0, 2));
         int month = Integer.parseInt(report.substring(3, 5));
         int year = Integer.parseInt(report.substring(6, 10));
-        //System.out.println("" + day + "/"  + month + "/" + year);
 
         // period 1 start
         int p1Hour = Integer.parseInt(report.substring(11, 13));
         int p1Minutes = Integer.parseInt(report.substring(14, 16));
-        //System.out.println("p1 - " + p1Hour + "h" + p1Minutes + "m");
 
-        // period 2 start
+        /*
+        period 2 start
         int p2Hour = Integer.parseInt(report.substring(17, 19));
         int p2Minutes = Integer.parseInt(report.substring(20, 22));
-        //System.out.println("p2 - " + p2Hour + "h" + p2Minutes + "m");
 
-        // period 2 start
+        period 3 start
         int p3Hour = Integer.parseInt(report.substring(23, 25));
         int p3Minutes = Integer.parseInt(report.substring(26, 28));
-        //System.out.println("p3 - " + p3Hour + "h" + p3Minutes + "m");
+        */
 
-        // period 2 start
+        // period 4 start
         int p4Hour = Integer.parseInt(report.substring(29, 31));
         int p4Minutes = Integer.parseInt(report.substring(32, 34));
-        //System.out.println("p4 - " + p4Hour + "h" + p4Minutes + "m");
 
         GregorianCalendar start = buildCalendar(day, month, year, p1Hour, p1Minutes);
         GregorianCalendar end = buildCalendar(day, month, year, p4Hour, p4Minutes);
 
-        int totalMinutesFromInterval = calculateTotalMinutesFromInterval(start, end);
-        int total = totalMinutesFromInterval - ONE_HOUR; // lunch time
-        int extraTime = total - TARGET_PER_DAY;
+        long totalMinutesFromInterval = calculateTotalMinutesFromInterval(start, end);
+        long total = totalMinutesFromInterval - ONE_HOUR; // lunch time
+        Long extraTime = total - TARGET_PER_DAY;
 
-        return formatReport(start, end, extraTime); 
+        return formatReport(start, end, extraTime.intValue()); 
     }
 
-    private static String formatReport(GregorianCalendar start, GregorianCalendar end, int totalMinutesFromInterval) {
+    private static String formatReport(GregorianCalendar start, GregorianCalendar end, long totalMinutesFromInterval) {
         return new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(start.getTime()) + " " + new SimpleDateFormat("HH:mm:ss").format(end.getTime()) + " " + totalMinutesFromInterval;
     }
 
-    public static int calculateTotalMinutesFromInterval(GregorianCalendar start, GregorianCalendar end) {
+    public static long calculateTotalMinutesFromInterval(GregorianCalendar start, GregorianCalendar end) {
         if (end.before(start)) throw new IllegalArgumentException("Invalid date range.");
         long totalInMilliseconds = end.getTimeInMillis() - start.getTimeInMillis();
-        int minutes = (int) ((totalInMilliseconds / 1000) / 60);
-        long hours = minutes / ONE_HOUR;
 
-        long leftover = (minutes - (hours * ONE_HOUR));
-        int total = (int) (minutes + leftover);
-
-        return total;
+        return TimeUnit.MILLISECONDS.toMinutes(totalInMilliseconds);
     }
 }
