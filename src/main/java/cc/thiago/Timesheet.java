@@ -16,10 +16,17 @@ public class Timesheet {
 
     public static final int ONE_HOUR = 60;
     public static final int TARGET_PER_DAY = ONE_HOUR * 8;
-
+    public static final char COMMA_SEPARATED = ';';
     public static int TOTAL_EXTRA_TIME = 0;
+    public static final String CVS_HEADER = "Data" + COMMA_SEPARATED + "Entrada" + COMMA_SEPARATED + "Saida" + COMMA_SEPARATED + "Extra" + "\n"; 
 
     public static void main(String[] args) throws IOException {
+        generateCSVReport();
+    }
+
+    public static void generateCSVReport() throws IOException {
+        StringBuilder finalReport = new StringBuilder();
+        finalReport.append(CVS_HEADER);
 
         List<String> reports = Files.readLines(new File("timesheet.txt"), Charsets.UTF_8);
         for (String report : reports) {
@@ -27,11 +34,14 @@ public class Timesheet {
             try {
                 String dailyReport = generateDailyReport(report);
                 System.out.println(dailyReport);
+                finalReport.append(dailyReport);
             } catch (IllegalArgumentException e) {
                 System.out.println(report + " > Invalid!");
             }
         }
         System.out.println("Total extra time: " + TOTAL_EXTRA_TIME);
+
+        Files.write(finalReport.toString().getBytes(), new File("timesheet.csv"));
     }
 
     public static GregorianCalendar buildCalendar(int day, int month, int year, int hour, int minutes) {
@@ -83,14 +93,14 @@ public class Timesheet {
 
             TOTAL_EXTRA_TIME += extraTime.intValue();
 
-            return formatReport(start, end, extraTime.intValue()); 
+            return formatCSVReport(start, end, extraTime.intValue()); 
         } catch (NumberFormatException ne) {
             return null;
         }
     }
 
-    private static String formatReport(GregorianCalendar start, GregorianCalendar end, long totalMinutesFromInterval) {
-        return new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(start.getTime()) + " " + new SimpleDateFormat("HH:mm:ss").format(end.getTime()) + " " + totalMinutesFromInterval;
+    private static String formatCSVReport(GregorianCalendar start, GregorianCalendar end, long totalMinutesFromInterval) {
+        return new SimpleDateFormat("dd/MM/yyyy").format(start.getTime()) + COMMA_SEPARATED + new SimpleDateFormat("HH:mm:ss").format(start.getTime()) + COMMA_SEPARATED + new SimpleDateFormat("HH:mm:ss").format(end.getTime()) + COMMA_SEPARATED + totalMinutesFromInterval + "\n";
     }
 
     public static long calculateTotalMinutesFromInterval(GregorianCalendar start, GregorianCalendar end) {
