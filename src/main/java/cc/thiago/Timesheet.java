@@ -18,7 +18,13 @@ public class Timesheet {
     public static final int TARGET_PER_DAY = ONE_HOUR * 8;
     public static final char COMMA_SEPARATED = ';';
     public static int TOTAL_EXTRA_TIME = 0;
-    public static final String CSV_HEADER = "Data" + COMMA_SEPARATED + "Entrada" + COMMA_SEPARATED + "Saida" + COMMA_SEPARATED + "Extra" + "\n"; 
+    public static final String CSV_HEADER = 
+            "Data" + COMMA_SEPARATED + 
+            "Entrada" + COMMA_SEPARATED + 
+            "Saida" + COMMA_SEPARATED +
+            "Entrada" + COMMA_SEPARATED +
+            "Saida" + COMMA_SEPARATED + 
+            "Extra" + "\n"; 
 
     public static void main(String[] args) throws IOException {
         generateCSVReport();
@@ -70,15 +76,13 @@ public class Timesheet {
             int p1Hour = Integer.parseInt(report.substring(11, 13));
             int p1Minutes = Integer.parseInt(report.substring(14, 16));
 
-            /*
-            period 2 start
+            // period 2 start
             int p2Hour = Integer.parseInt(report.substring(17, 19));
             int p2Minutes = Integer.parseInt(report.substring(20, 22));
 
-            period 3 start
+            // period 3 start
             int p3Hour = Integer.parseInt(report.substring(23, 25));
             int p3Minutes = Integer.parseInt(report.substring(26, 28));
-            */
 
             // period 4 start
             int p4Hour = Integer.parseInt(report.substring(29, 31));
@@ -87,20 +91,38 @@ public class Timesheet {
             GregorianCalendar start = buildCalendar(day, month, year, p1Hour, p1Minutes);
             GregorianCalendar end = buildCalendar(day, month, year, p4Hour, p4Minutes);
 
+            GregorianCalendar intervalStart = buildCalendar(day, month, year, p2Hour, p2Minutes);
+            GregorianCalendar intervalEnd = buildCalendar(day, month, year, p3Hour, p3Minutes);
+
             long totalMinutesFromInterval = calculateTotalMinutesFromInterval(start, end);
-            long total = totalMinutesFromInterval - ONE_HOUR; // lunch time
+            long interval = calculateTotalMinutesFromInterval(intervalStart, intervalEnd);
+
+            long total = 0;
+            if (interval <= ONE_HOUR) {
+                total = totalMinutesFromInterval - ONE_HOUR; // lunch time
+            } else {
+                total = totalMinutesFromInterval - interval; // lunch time
+            }
+
             Long extraTime = total - TARGET_PER_DAY;
 
             TOTAL_EXTRA_TIME += extraTime.intValue();
 
-            return formatCSVReport(start, end, extraTime.intValue()); 
+            return formatCSVReport(start, intervalStart, intervalEnd,  end, extraTime.intValue()); 
         } catch (NumberFormatException ne) {
             return null;
         }
     }
 
-    private static String formatCSVReport(GregorianCalendar start, GregorianCalendar end, long totalMinutesFromInterval) {
-        return new SimpleDateFormat("dd/MM/yyyy").format(start.getTime()) + COMMA_SEPARATED + new SimpleDateFormat("HH:mm:ss").format(start.getTime()) + COMMA_SEPARATED + new SimpleDateFormat("HH:mm:ss").format(end.getTime()) + COMMA_SEPARATED + totalMinutesFromInterval + "\n";
+    private static String formatCSVReport(GregorianCalendar start, GregorianCalendar intervalStart, GregorianCalendar intervalEnd,  GregorianCalendar end, long totalMinutesFromInterval) {
+        StringBuilder result = new StringBuilder();
+        result.append(new SimpleDateFormat("dd/MM/yyyy").format(start.getTime())).append(COMMA_SEPARATED);
+        result.append(new SimpleDateFormat("HH:mm").format(start.getTime())).append(COMMA_SEPARATED);
+        result.append(new SimpleDateFormat("HH:mm").format(intervalStart.getTime())).append(COMMA_SEPARATED);
+        result.append(new SimpleDateFormat("HH:mm").format(intervalEnd.getTime())).append(COMMA_SEPARATED);
+        result.append(new SimpleDateFormat("HH:mm").format(end.getTime())).append(COMMA_SEPARATED);
+        result.append(totalMinutesFromInterval).append("\n");
+        return result.toString();
     }
 
     public static long calculateTotalMinutesFromInterval(GregorianCalendar start, GregorianCalendar end) {
