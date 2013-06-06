@@ -18,7 +18,7 @@ public class Timesheet {
     public static final int TARGET_PER_DAY = ONE_HOUR * 8;
     public static final char COMMA_SEPARATED = ';';
     public static int TOTAL_EXTRA_TIME = 0;
-    public static final String CVS_HEADER = "Data" + COMMA_SEPARATED + "Entrada" + COMMA_SEPARATED + "Saida" + COMMA_SEPARATED + "Extra" + "\n"; 
+    public static final String CSV_HEADER = "Data" + COMMA_SEPARATED + "Entrada" + COMMA_SEPARATED + "Saida" + COMMA_SEPARATED + "Extra" + "\n"; 
 
     public static void main(String[] args) throws IOException {
         generateCSVReport();
@@ -26,7 +26,7 @@ public class Timesheet {
 
     public static void generateCSVReport() throws IOException {
         StringBuilder finalReport = new StringBuilder();
-        finalReport.append(CVS_HEADER);
+        finalReport.append(CSV_HEADER);
 
         List<String> reports = Files.readLines(new File("timesheet.txt"), Charsets.UTF_8);
         for (String report : reports) {
