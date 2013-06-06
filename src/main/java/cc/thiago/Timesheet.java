@@ -17,13 +17,21 @@ public class Timesheet {
     public static final int ONE_HOUR = 60;
     public static final int TARGET_PER_DAY = ONE_HOUR * 8;
 
+    public static int TOTAL_EXTRA_TIME = 0;
+
     public static void main(String[] args) throws IOException {
 
         List<String> reports = Files.readLines(new File("timesheet.txt"), Charsets.UTF_8);
         for (String report : reports) {
             if (Strings.isNullOrEmpty(report)) continue;
-            System.out.println(generateDailyReport(report));
+            try {
+                String dailyReport = generateDailyReport(report);
+                System.out.println(dailyReport);
+            } catch (IllegalArgumentException e) {
+                System.out.println(report + " > Invalid!");
+            }
         }
+        System.out.println("Total extra time: " + TOTAL_EXTRA_TIME);
     }
 
     public static GregorianCalendar buildCalendar(int day, int month, int year, int hour, int minutes) {
@@ -41,38 +49,44 @@ public class Timesheet {
     // 22/04/2013 11:30 12:40 13:30 20:30
     // 0123456789012345678901234567890123
     public static String generateDailyReport(String report) {
-        if (report.length() < 34) return null; // throw new IllegalArgumentException("Invalid string to parsed");
+        if (report.length() < 34) throw new IllegalArgumentException("Invalid string to parsed");
 
-        int day = Integer.parseInt(report.substring(0, 2));
-        int month = Integer.parseInt(report.substring(3, 5));
-        int year = Integer.parseInt(report.substring(6, 10));
+        try {
+            int day = Integer.parseInt(report.substring(0, 2));
+            int month = Integer.parseInt(report.substring(3, 5));
+            int year = Integer.parseInt(report.substring(6, 10));
 
-        // period 1 start
-        int p1Hour = Integer.parseInt(report.substring(11, 13));
-        int p1Minutes = Integer.parseInt(report.substring(14, 16));
+            // period 1 start
+            int p1Hour = Integer.parseInt(report.substring(11, 13));
+            int p1Minutes = Integer.parseInt(report.substring(14, 16));
 
-        /*
-        period 2 start
-        int p2Hour = Integer.parseInt(report.substring(17, 19));
-        int p2Minutes = Integer.parseInt(report.substring(20, 22));
+            /*
+            period 2 start
+            int p2Hour = Integer.parseInt(report.substring(17, 19));
+            int p2Minutes = Integer.parseInt(report.substring(20, 22));
 
-        period 3 start
-        int p3Hour = Integer.parseInt(report.substring(23, 25));
-        int p3Minutes = Integer.parseInt(report.substring(26, 28));
-        */
+            period 3 start
+            int p3Hour = Integer.parseInt(report.substring(23, 25));
+            int p3Minutes = Integer.parseInt(report.substring(26, 28));
+            */
 
-        // period 4 start
-        int p4Hour = Integer.parseInt(report.substring(29, 31));
-        int p4Minutes = Integer.parseInt(report.substring(32, 34));
+            // period 4 start
+            int p4Hour = Integer.parseInt(report.substring(29, 31));
+            int p4Minutes = Integer.parseInt(report.substring(32, 34));
 
-        GregorianCalendar start = buildCalendar(day, month, year, p1Hour, p1Minutes);
-        GregorianCalendar end = buildCalendar(day, month, year, p4Hour, p4Minutes);
+            GregorianCalendar start = buildCalendar(day, month, year, p1Hour, p1Minutes);
+            GregorianCalendar end = buildCalendar(day, month, year, p4Hour, p4Minutes);
 
-        long totalMinutesFromInterval = calculateTotalMinutesFromInterval(start, end);
-        long total = totalMinutesFromInterval - ONE_HOUR; // lunch time
-        Long extraTime = total - TARGET_PER_DAY;
+            long totalMinutesFromInterval = calculateTotalMinutesFromInterval(start, end);
+            long total = totalMinutesFromInterval - ONE_HOUR; // lunch time
+            Long extraTime = total - TARGET_PER_DAY;
 
-        return formatReport(start, end, extraTime.intValue()); 
+            TOTAL_EXTRA_TIME += extraTime.intValue();
+
+            return formatReport(start, end, extraTime.intValue()); 
+        } catch (NumberFormatException ne) {
+            return null;
+        }
     }
 
     private static String formatReport(GregorianCalendar start, GregorianCalendar end, long totalMinutesFromInterval) {
