@@ -45,7 +45,7 @@ public class Timesheet {
                 System.out.println(report + " > Invalid!");
             }
         }
-        System.out.println("Total extra time: " + TOTAL_EXTRA_TIME);
+        System.out.println("Total extra time: " + TOTAL_EXTRA_TIME + " minutes.");
 
         Files.write(finalReport.toString().getBytes(), new File("timesheet.csv"));
     }
